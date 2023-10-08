@@ -20,14 +20,17 @@ export class ArticleService extends BaseService<ArticleEntity> {
 
   async createArticle(userId: number, createArticleDto: CreateArticleDto) {
     const article = new ArticleEntity();
-    const image = await this.imageService.createImage(createArticleDto.image);
-    article.imageUrl = image.url;
+    if (createArticleDto.image) {
+      const image = await this.imageService.createImage(createArticleDto.image);
+      article.imageUrl = image.url;
+    }
+    article.imageUrl = null;
     article.text = createArticleDto.text;
     article.title = createArticleDto.title;
     const user = await this.userService.findById(userId);
     user.articles.push(article);
     await this.userService.saveUser(user);
-    // console.log(article);
+    console.log(article);
     return await this.articleRepository.save(article);
   }
 }

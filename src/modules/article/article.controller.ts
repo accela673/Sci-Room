@@ -37,10 +37,12 @@ export class ArticleController {
         image: {
           type: 'string',
           format: 'binary',
+          nullable: true,
         },
         title: { type: 'string' },
         text: { type: 'string' },
       },
+      required: ['title', 'text'],
     },
   })
   async createArticle(
@@ -50,9 +52,11 @@ export class ArticleController {
     @UploadedFile() file: Express.Multer.File,
   ) {
     const article = new CreateArticleDto();
-    article.image = file;
+    if (file) {
+      article.image = file;
+    }
     Object.assign(article, createArticleDto);
     return await this.articleService.createArticle(req.user.id, article);
-    // console.log(req.user);
+    // console.log(file);
   }
 }

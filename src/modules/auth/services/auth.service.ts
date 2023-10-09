@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserEntity } from '../../user/entities/user.entity';
 import { UserService } from 'src/modules/user/services/user.service';
+import { ChangePasswordDto } from 'src/modules/user/dto/change-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -18,9 +19,18 @@ export class AuthService {
   }
 
   async validateUserById(id: number): Promise<UserEntity | null> {
-    // В этом методе вы можете использовать ваш UserService
-    // для поиска пользователя по его ID
     const user = await this.userService.findById(id);
-    return user || null; // Если пользователь не найден, возвращаем null
+    return user || null;
+  }
+
+  async changePassword(email: string, changePasswordDto: ChangePasswordDto) {
+    const user = await this.userService.checkIfEmailExcist(email);
+    const result = await this.userService.changePassword(
+      user,
+      changePasswordDto,
+    );
+    return {
+      message: 'Password successfully changed',
+    };
   }
 }

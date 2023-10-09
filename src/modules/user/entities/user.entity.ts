@@ -19,6 +19,9 @@ export class UserEntity extends BaseEntity {
   @Column({ nullable: true })
   confirmCodeId: number;
 
+  @Column({ nullable: true })
+  passwordRecoveryCodeId: number;
+
   @Column({ default: false })
   isConfirmed: boolean;
 

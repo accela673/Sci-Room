@@ -8,6 +8,11 @@ const timeout = require('connect-timeout');
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.enableCors({
+    origin: ['http://10.129.1.98:3000', 'http://localhost:3000'],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+  });
   const PORT = process.env.PORT || 8080;
   app.setGlobalPrefix('api');
   app.use(timeout('50s'));

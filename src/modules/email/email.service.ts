@@ -39,7 +39,7 @@ export class EmailService {
       from: process.env.EMAIL_USER,
       to: data.email,
       subject: "Scientist's room password confirmation",
-      text: `This is your confirmation code  ${data.code}   Dont give it to anyone!!!`,
+      text: `This is your confirmation code  ${data.code}   Dont give it to anyone!!! This code will expire in 15 minutes`,
     };
 
     try {

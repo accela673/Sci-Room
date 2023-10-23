@@ -4,7 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ArticleModule } from './modules/article/article.module';
-import { ImageModule } from './modules/image/image.module';
+import { FileModule } from './modules/image/file.module';
 import { EmailModule } from './modules/email/email.module';
 
 @Module({
@@ -32,7 +32,7 @@ import { EmailModule } from './modules/email/email.module';
     UserModule,
     AuthModule,
     ArticleModule,
-    ImageModule,
+    FileModule,
     EmailModule,
   ],
 })

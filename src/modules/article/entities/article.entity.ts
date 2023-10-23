@@ -5,7 +5,13 @@ import { Column, Entity, ManyToOne } from 'typeorm';
 @Entity()
 export class ArticleEntity extends BaseEntity {
   @Column({ nullable: true })
-  imageUrl: string;
+  imageUrl: null | string;
+
+  // @Column({ nullable: true })
+  // txtFile: string;
+
+  // @Column({ nullable: true })
+  // pdfFile: string;
 
   @Column()
   title: string;
@@ -18,6 +24,9 @@ export class ArticleEntity extends BaseEntity {
 
   @Column({ default: false })
   isApproved: boolean;
+
+  @Column({ default: false })
+  isDeleted: boolean;
 
   @ManyToOne(() => UserEntity, (user) => user.articles, {
     onDelete: 'CASCADE',

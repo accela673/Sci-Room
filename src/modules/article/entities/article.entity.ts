@@ -1,4 +1,5 @@
 import { BaseEntity } from 'src/base/base.entity';
+import { CategoryEntity } from 'src/modules/category/entities/category.entity';
 import { UserEntity } from 'src/modules/user/entities/user.entity';
 import { Column, Entity, ManyToOne } from 'typeorm';
 
@@ -28,9 +29,15 @@ export class ArticleEntity extends BaseEntity {
   @Column({ default: false })
   isDeleted: boolean;
 
+  @Column({ nullable: true })
+  coauthors: null | string;
+
   @ManyToOne(() => UserEntity, (user) => user.articles, {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
   })
   user: UserEntity;
+
+  @ManyToOne(() => CategoryEntity, (category) => category.article)
+  category: CategoryEntity;
 }

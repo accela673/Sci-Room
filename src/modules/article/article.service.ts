@@ -21,11 +21,17 @@ export class ArticleService extends BaseService<ArticleEntity> {
   }
 
   async getAllDeleted() {
-    return await this.articleRepository.find({ where: { isDeleted: true } });
+    return await this.articleRepository.find({
+      where: { isDeleted: true },
+      relations: ['category'],
+    });
   }
 
   async getAll() {
-    return await this.articleRepository.find({ where: { isDeleted: false } });
+    return await this.articleRepository.find({
+      where: { isDeleted: false },
+      relations: ['category'],
+    });
   }
 
   async createArticle(userId: number, createArticleDto: CreateArticleDto) {
@@ -48,7 +54,10 @@ export class ArticleService extends BaseService<ArticleEntity> {
     return await this.articleRepository.save(article);
   }
   async getOne(id: number) {
-    return await this.articleRepository.findOne({ where: { id: id } });
+    return await this.articleRepository.findOne({
+      where: { id: id },
+      relations: ['category'],
+    });
   }
 
   async getAllByCategory(name: string) {

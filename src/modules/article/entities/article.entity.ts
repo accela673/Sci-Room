@@ -30,7 +30,7 @@ export class ArticleEntity extends BaseEntity {
   isDeleted: boolean;
 
   @Column({ nullable: true })
-  coauthors: string;
+  coauthors: null | string;
 
   @ManyToOne(() => UserEntity, (user) => user.articles, {
     onDelete: 'CASCADE',

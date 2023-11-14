@@ -85,13 +85,6 @@ export class ArticleController {
   }
 
   @ApiTags('Articles for admin')
-  @Get(':id')
-  @ApiOperation({ summary: 'Get article by id' })
-  async getArticle(@Param('id') id: number) {
-    return await this.articleService.getOne(+id);
-  }
-
-  @ApiTags('Articles for admin')
   @Get('all')
   @ApiOperation({ summary: 'Get all articles' })
   async getArticles() {
@@ -99,28 +92,35 @@ export class ArticleController {
   }
 
   @ApiTags('Articles for admin')
-  @Get('allDeleted')
+  @Get('all/deleted') // Updated route to avoid conflict
   @ApiOperation({ summary: 'Get all deleted articles' })
   async getDeletedArticles() {
     return await this.articleService.getAllDeleted();
   }
 
   @ApiTags('Articles for admin')
-  @Get(':category')
+  @Get('category/:categoryName')
   @ApiOperation({ summary: 'Get articles of a certain category' })
-  async getCategoryArticles(@Param('category') name: string) {
+  async getCategoryArticles(@Param('categoryName') name: string) {
     return await this.articleService.getAllByCategory(name);
   }
 
   @ApiTags('Articles for admin')
-  @Patch(':id')
+  @Get('find/:id')
+  @ApiOperation({ summary: 'Get article by id' })
+  async getArticle(@Param('id') id: number) {
+    return await this.articleService.getOne(+id);
+  }
+
+  @ApiTags('Articles for admin')
+  @Patch('delete/:id')
   @ApiOperation({ summary: 'Delete article by id' })
   async deleteArticle(@Param('id') id: number) {
     return await this.articleService.deleteArticle(+id);
   }
 
   @ApiTags('Articles for admin')
-  @Patch(':id')
+  @Patch('restore/:id')
   @ApiOperation({ summary: 'Restore article by id' })
   async restoreArticle(@Param('id') id: number) {
     return await this.articleService.restoreArticle(+id);

@@ -5,10 +5,10 @@ import { Image } from './entities/image.entity';
 import { CloudinaryModule } from '../../services/cloudinary/cloudinary.modules';
 import { FileController } from './file.controller';
 import { Pdf } from './entities/pdf.entity';
-import { Txt } from './entities/txt.entity';
+import { DocX } from './entities/txt.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Image, Pdf, Txt]), CloudinaryModule],
+  imports: [TypeOrmModule.forFeature([Image, Pdf, DocX]), CloudinaryModule],
   providers: [FileService],
   controllers: [FileController],
   exports: [FileService],

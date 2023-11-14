@@ -5,7 +5,7 @@ import { Column, Entity, ManyToOne } from 'typeorm';
 @Entity()
 export class ArticleEntity extends BaseEntity {
   @Column({ nullable: true })
-  imageUrl: null | string;
+  fileUrl: null | string;
 
   // @Column({ nullable: true })
   // txtFile: string;

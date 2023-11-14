@@ -4,7 +4,7 @@ import { Image } from './entities/image.entity';
 import { Repository } from 'typeorm';
 import { CloudinaryService } from '../../services/cloudinary/cloudinary.service';
 import { Pdf } from './entities/pdf.entity';
-import { Txt } from './entities/txt.entity';
+import { DocX } from './entities/txt.entity';
 
 @Injectable()
 export class FileService {
@@ -13,8 +13,8 @@ export class FileService {
     private readonly imagesRepository: Repository<Image>,
     @InjectRepository(Pdf)
     private readonly pdfRepository: Repository<Pdf>,
-    @InjectRepository(Txt)
-    private readonly txtRepository: Repository<Txt>,
+    @InjectRepository(DocX)
+    private readonly docxRepository: Repository<DocX>,
     private readonly cloudinaryService: CloudinaryService,
   ) {}
 
@@ -40,14 +40,14 @@ export class FileService {
     return this.imagesRepository.save(image);
   }
 
-  async createTxt(file: Express.Multer.File) {
+  async createDocx(file: Express.Multer.File) {
     if (!file) {
-      throw new BadRequestException('Provide txt file');
+      throw new BadRequestException('Provide docx file');
     }
-    const cloudTxt = await this.cloudinaryService.uploadTxt(file);
-    const txt = new Txt();
-    txt.publicId = cloudTxt.public_id;
-    txt.url = cloudTxt.secure_url;
-    return this.txtRepository.save(txt);
+    const cloudDocx = await this.cloudinaryService.uploadDocx(file);
+    const docx = new DocX();
+    docx.publicId = cloudDocx.public_id;
+    docx.url = cloudDocx.secure_url;
+    return this.docxRepository.save(docx);
   }
 }

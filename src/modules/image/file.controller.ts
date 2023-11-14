@@ -58,15 +58,15 @@ export class FileController {
     schema: {
       type: 'object',
       properties: {
-        pdfFile: {
+        docxFile: {
           type: 'string',
           format: 'binary',
         },
       },
     },
   })
-  @UseInterceptors(FileInterceptor('pdfFile'))
+  @UseInterceptors(FileInterceptor('docxFile'))
   createTxt(@UploadedFile() file: Express.Multer.File) {
-    return this.fileService.createTxt(file);
+    return this.fileService.createDocx(file);
   }
 }

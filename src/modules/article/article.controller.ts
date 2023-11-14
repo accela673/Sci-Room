@@ -50,12 +50,12 @@ export class ArticleController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create article' })
   @ApiConsumes('multipart/form-data')
-  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(FileInterceptor('file'))
   @ApiBody({
     schema: {
       type: 'object',
       properties: {
-        image: {
+        file: {
           type: 'string',
           format: 'binary',
           nullable: true,
@@ -74,7 +74,7 @@ export class ArticleController {
   ) {
     const article = new CreateArticleDto();
     if (file) {
-      article.image = file;
+      article.file = file;
     }
     Object.assign(article, createArticleDto);
     return await this.articleService.createArticle(req.user.id, article);

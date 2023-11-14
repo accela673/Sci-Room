@@ -34,12 +34,12 @@ export class CloudinaryService {
     });
   }
 
-  async uploadTxt(
+  async uploadDocx(
     file: Express.Multer.File,
   ): Promise<UploadApiResponse | UploadApiErrorResponse> {
     return new Promise((resolve, reject) => {
       const upload = v2.uploader.upload_stream(
-        { resource_type: 'raw' },
+        { resource_type: 'auto' }, // Обновлено до автоматического определения ресурса
         (error, result) => {
           if (error) return reject(error);
           resolve(result);

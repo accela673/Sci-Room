@@ -20,11 +20,10 @@ export class ArticleService extends BaseService<ArticleEntity> {
 
   async createArticle(userId: number, createArticleDto: CreateArticleDto) {
     const article = new ArticleEntity();
-    if (createArticleDto.image) {
-      const image = await this.fileService.createImage(createArticleDto.image);
-      article.imageUrl = image.url;
+    if (createArticleDto.file) {
+      const file = await this.fileService.createDocx(createArticleDto.file);
+      article.fileUrl = file.url;
     }
-    article.imageUrl = null;
     article.text = createArticleDto.text;
     article.title = createArticleDto.title;
     const user = await this.userService.findById(userId);
@@ -39,7 +38,7 @@ export class ArticleService extends BaseService<ArticleEntity> {
 
   async getAllMy(id: number) {
     const articles = await this.articleRepository.find({
-      where: { user: { id: id }, isDeleted: true },
+      where: { user: { id: id }, isDeleted: false },
       relations: ['user'],
     });
     for (let i = 0; i < articles.length; i++) {

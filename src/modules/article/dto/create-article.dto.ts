@@ -2,8 +2,10 @@ import { IsOptional, IsString } from 'class-validator';
 
 export class CreateArticleDto {
   @IsOptional()
-  image: null | Express.Multer.File;
+  file: null | Express.Multer.File;
 
+  @IsOptional()
+  coauthors: null | string[];
   // @IsOptional()
   // pdfFile: null | Express.Multer.File;
 

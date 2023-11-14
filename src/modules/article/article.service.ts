@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UserService } from '../user/services/user.service';
 import { FileService } from '../image/file.service';
+import { CategoryService } from '../category/category.service';
 
 @Injectable()
 export class ArticleService extends BaseService<ArticleEntity> {
@@ -13,9 +14,18 @@ export class ArticleService extends BaseService<ArticleEntity> {
     @InjectRepository(ArticleEntity)
     private readonly articleRepository: Repository<ArticleEntity>,
     private userService: UserService,
+    private categoryService: CategoryService,
     private fileService: FileService,
   ) {
     super(articleRepository);
+  }
+
+  async getAllDeleted() {
+    return await this.articleRepository.find({ where: { isDeleted: true } });
+  }
+
+  async getAll() {
+    return await this.articleRepository.find({ where: { isDeleted: false } });
   }
 
   async createArticle(userId: number, createArticleDto: CreateArticleDto) {
@@ -24,6 +34,11 @@ export class ArticleService extends BaseService<ArticleEntity> {
       const file = await this.fileService.createDocx(createArticleDto.file);
       article.fileUrl = file.url;
     }
+    const category = await this.categoryService.findOne(
+      createArticleDto.category,
+    );
+    article.category = category;
+    article.coauthors = createArticleDto.coauthors;
     article.text = createArticleDto.text;
     article.title = createArticleDto.title;
     const user = await this.userService.findById(userId);
@@ -36,10 +51,18 @@ export class ArticleService extends BaseService<ArticleEntity> {
     return await this.articleRepository.findOne({ where: { id: id } });
   }
 
+  async getAllByCategory(name: string) {
+    await this.categoryService.findOne(name);
+    return await this.articleRepository.find({
+      where: { category: { name: name } },
+      relations: ['category'],
+    });
+  }
+
   async getAllMy(id: number) {
     const articles = await this.articleRepository.find({
       where: { user: { id: id }, isDeleted: false },
-      relations: ['user'],
+      relations: ['user', 'category'],
     });
     for (let i = 0; i < articles.length; i++) {
       delete articles[i].user;
@@ -47,12 +70,32 @@ export class ArticleService extends BaseService<ArticleEntity> {
     return articles;
   }
 
+  async getAllMyDeleted(id: number) {
+    const articles = await this.articleRepository.find({
+      where: { user: { id: id }, isDeleted: true },
+      relations: ['user', 'category'],
+    });
+    for (let i = 0; i < articles.length; i++) {
+      delete articles[i].user;
+    }
+    return articles;
+  }
   async deleteArticle(id: number) {
     const article = await this.getOne(id);
     if (article && !article.isDeleted) {
       article.isDeleted = true;
       await this.articleRepository.save(article);
       return { message: 'Successfully deleted' };
+    }
+    return;
+  }
+
+  async restoreArticle(id: number) {
+    const article = await this.getOne(id);
+    if (article && article.isDeleted) {
+      article.isDeleted = false;
+      await this.articleRepository.save(article);
+      return { message: 'Successfully restored' };
     }
     return;
   }

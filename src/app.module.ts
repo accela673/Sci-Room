@@ -4,8 +4,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ArticleModule } from './modules/article/article.module';
-import { ImageModule } from './modules/image/image.module';
+import { FileModule } from './modules/image/file.module';
 import { EmailModule } from './modules/email/email.module';
+import { CategoryModule } from './modules/category/category.module';
 
 @Module({
   imports: [
@@ -32,8 +33,9 @@ import { EmailModule } from './modules/email/email.module';
     UserModule,
     AuthModule,
     ArticleModule,
-    ImageModule,
+    FileModule,
     EmailModule,
+    CategoryModule,
   ],
 })
 export class AppModule {}

@@ -145,6 +145,10 @@ export class UserService extends BaseService<UserEntity> {
     };
   }
 
+  async getAllUsers() {
+    return await this.userRepository.find();
+  }
+
   async findOneCode(codeId: number): Promise<CodeEntity> {
     const code = await this.codeRepository.findOne({ where: { id: codeId } });
     if (!code) {

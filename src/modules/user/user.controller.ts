@@ -9,7 +9,9 @@ export class UserController {
 
   @ApiOperation({ summary: 'Get list of all users' })
   @Get()
-  async getAll() {}
+  async getAll() {
+    return await this.userService.getAllUsers();
+  }
 
   @ApiOperation({ summary: 'Get one user by email' })
   @Get('email')

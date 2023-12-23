@@ -3,7 +3,7 @@ version: '2'
 services:
   app:
     # image: 'scientistroom-backend:0.1'
-    image: notmiddev30/scientistroom:0.1
+    image: notmiddev30/scientistroom:1.2
     # build:
     #   context: .
     container_name: app
@@ -12,7 +12,7 @@ services:
     depends_on:
       - db
     environment:
-      - DB_HOST=postgres://postgres:postgres@postgres:5432
+      - DB_HOST=db
 
   db:
     image: 'postgres:13.1-alpine'
@@ -22,12 +22,12 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=sci-room
 
-  pgadmin-compose:
-    image: dpage/pgadmin4
-    environment:
-      PGADMIN_DEFAULT_EMAIL: "batmaaanpls@gmail.com"
-      PGADMIN_DEFAULT_PASSWORD: "kevindurant35!"
-    ports:
-      - "16543:80"
-    depends_on:
-      - db
+  # pgadmin-compose:
+  #   image: dpage/pgadmin4
+  #   environment:
+  #     PGADMIN_DEFAULT_EMAIL: "batmaaanpls@gmail.com"
+  #     PGADMIN_DEFAULT_PASSWORD: "kevindurant35!"
+  #   ports:
+  #     - "16543:80"
+  #   depends_on:
+  #     - db

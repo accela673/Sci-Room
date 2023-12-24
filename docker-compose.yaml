@@ -4,8 +4,8 @@ services:
   app:
     image: 'scientistroom-backend:0.1'
     # image: notmiddev30/scientistroom:1.2
-    # build:
-    #   context: .
+    build:
+      context: .
     container_name: app
     ports:
       - "3000:3000"

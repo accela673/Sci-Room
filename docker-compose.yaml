@@ -2,8 +2,8 @@ version: '2'
 
 services:
   app:
-    # image: 'scientistroom-backend:0.1'
-    image: notmiddev30/scientistroom:1.2
+    image: 'scientistroom-backend:0.1'
+    # image: notmiddev30/scientistroom:1.2
     # build:
     #   context: .
     container_name: app

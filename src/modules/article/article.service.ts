@@ -108,4 +108,36 @@ export class ArticleService extends BaseService<ArticleEntity> {
     }
     return;
   }
+
+  async approveArticle(id: number) {
+    const article = await this.getOne(id);
+    if (
+      article &&
+      !article.isDeleted &&
+      article.isApproved == null &&
+      article.isPending == true
+    ) {
+      article.isApproved = true;
+      article.isPending = false;
+      await this.articleRepository.save(article);
+      return { message: 'Successfully approved' };
+    }
+    return;
+  }
+
+  async declineArticle(id: number) {
+    const article = await this.getOne(id);
+    if (
+      article &&
+      !article.isDeleted &&
+      article.isApproved == null &&
+      article.isPending == true
+    ) {
+      article.isApproved = false;
+      article.isPending = false;
+      await this.articleRepository.save(article);
+      return { message: 'Successfully declined' };
+    }
+    return;
+  }
 }

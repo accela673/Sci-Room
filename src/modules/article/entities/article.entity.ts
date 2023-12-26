@@ -23,8 +23,11 @@ export class ArticleEntity extends BaseEntity {
   @Column({ default: false })
   isPublished: boolean;
 
-  @Column({ default: false })
+  @Column({ nullable: true, default: null })
   isApproved: boolean;
+
+  @Column({ default: true })
+  isPending: boolean;
 
   @Column({ default: false })
   isDeleted: boolean;

@@ -125,4 +125,11 @@ export class ArticleController {
   async restoreArticle(@Param('id') id: number) {
     return await this.articleService.restoreArticle(+id);
   }
+
+  @ApiTags('Articles for admin')
+  @Patch('approve/:id')
+  @ApiOperation({ summary: 'Approve article by id' })
+  async approveArticle(@Param('id') id: number) {
+    return await this.articleService.restoreArticle(+id);
+  }
 }

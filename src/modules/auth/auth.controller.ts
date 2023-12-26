@@ -18,6 +18,7 @@ import { LoginDto } from '../user/dto/login-dto';
 import { ForgotPasswordDto } from '../user/dto/forgot-password.dto';
 import { JwtAuthGuard } from './jwt/jwt-auth.guard';
 import { ChangePasswordDto } from '../user/dto/change-password.dto';
+import { UserRole } from '../user/enums/roles.enum';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -56,6 +57,23 @@ export class AuthController {
   @ApiOperation({ summary: 'Login' })
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
+    if (
+      loginDto.email == process.env.ADMIN_EMAIL &&
+      loginDto.password == process.env.ADMIN_PASSWORD
+    ) {
+      const admin = await this.userService.findOneUser(loginDto.email);
+      if (!admin) {
+        const admin = new CreateUserDto();
+        admin.firstName = 'Journal';
+        admin.email = loginDto.email;
+        admin.password = loginDto.password;
+        admin.lastName = 'Admin';
+        await this.userService.create(admin);
+      }
+      admin.role = UserRole.ADMIN;
+      await this.userService.saveUser(admin);
+      return this.authService.generateToken(admin);
+    }
     const user = await this.userService.findOneUser(loginDto.email);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');

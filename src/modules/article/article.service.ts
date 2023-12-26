@@ -140,4 +140,25 @@ export class ArticleService extends BaseService<ArticleEntity> {
     }
     return;
   }
+
+  async changeVisibility(id: number) {
+    const article = await this.getOne(id);
+    if (
+      article &&
+      !article.isDeleted &&
+      article.isApproved == true &&
+      article.isPending == false
+    ) {
+      if (article.isPublished == true) {
+        article.isPublished = false;
+        await this.articleRepository.save(article);
+        return { message: 'Successfully depublished' };
+      } else {
+        article.isPublished = true;
+        await this.articleRepository.save(article);
+        return { message: 'Successfully published' };
+      }
+    }
+    return;
+  }
 }

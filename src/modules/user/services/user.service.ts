@@ -27,6 +27,10 @@ export class UserService extends BaseService<UserEntity> {
     return await this.userRepository.findOne({ where: { email: email } });
   }
 
+  async createAdmin(email: string) {
+    return await this.userRepository.findOne({ where: { email: email } });
+  }
+
   async checkIfEmailExcist(email: string): Promise<UserEntity | undefined> {
     const user = await this.findOneUser(email);
     if (!user) {

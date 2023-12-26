@@ -31,7 +31,7 @@ export class ArticleController {
   @Get('allMy')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get my articles' })
+  @ApiOperation({ summary: 'Get all my articles' })
   async getAllMyArticles(@Req() req: any) {
     return await this.articleService.getAllMy(req.user.id);
   }
@@ -81,7 +81,6 @@ export class ArticleController {
     article.file = file;
     Object.assign(article, createArticleDto);
     return await this.articleService.createArticle(req.user.id, article);
-    // console.log(file);
   }
 
   @ApiTags('Articles for admin')
@@ -130,6 +129,13 @@ export class ArticleController {
   @Patch('approve/:id')
   @ApiOperation({ summary: 'Approve article by id' })
   async approveArticle(@Param('id') id: number) {
-    return await this.articleService.restoreArticle(+id);
+    return await this.articleService.approveArticle(+id);
+  }
+
+  @ApiTags('Articles for admin')
+  @Patch('changeVisibility/:id')
+  @ApiOperation({ summary: 'Make article public or private' })
+  async changeVisibility(@Param('id') id: number) {
+    return await this.articleService.changeVisibility(+id);
   }
 }

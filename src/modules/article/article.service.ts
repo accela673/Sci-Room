@@ -93,6 +93,7 @@ export class ArticleService extends BaseService<ArticleEntity> {
     const article = await this.getOne(id);
     if (article && !article.isDeleted) {
       article.isDeleted = true;
+      article.isPublished = false;
       await this.articleRepository.save(article);
       return { message: 'Successfully deleted' };
     }

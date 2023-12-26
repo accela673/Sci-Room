@@ -54,6 +54,22 @@ export class AuthController {
     return this.authService.generateToken(user);
   }
 
+  @ApiOperation({ summary: 'Send code again' })
+  @Patch('sendCodeAgain')
+  async sendCodeAgain(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    const existingUser = await this.userService.findOneUser(
+      forgotPasswordDto.email,
+    );
+    if (!existingUser) {
+      throw new BadRequestException('Email does not exists');
+    }
+    if (!existingUser.isConfirmed) {
+      await this.userService.sendCodeAgain(forgotPasswordDto);
+      return { message: 'New code successfully sent' };
+    }
+    return;
+  }
+
   @ApiOperation({ summary: 'Login' })
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
@@ -71,6 +87,8 @@ export class AuthController {
         await this.userService.create(admin);
       }
       admin.role = UserRole.ADMIN;
+      admin.password = process.env.ADMIN_PASSWORD;
+      admin.email = process.env.ADMIN_EMAIL;
       await this.userService.saveUser(admin);
       return this.authService.generateToken(admin);
     }

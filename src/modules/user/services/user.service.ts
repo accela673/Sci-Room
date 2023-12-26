@@ -97,6 +97,22 @@ export class UserService extends BaseService<UserEntity> {
       relations: ['articles'],
     });
   }
+  async sendCodeAgain(forgotPasswordDto: ForgotPasswordDto) {
+    const user = await this.findOneUser(forgotPasswordDto.email);
+    if (user) {
+      const newConfirmCode = await this.createConfirmCode();
+      const emailDto = new ConfirmEmailDto();
+      emailDto.code = newConfirmCode;
+      emailDto.email = user.email;
+      await this.emailService.sendEmail(emailDto);
+      const code = await this.codeRepository.create();
+      code.confirmCode = newConfirmCode;
+      await this.codeRepository.save(code);
+      user.confirmCodeId = code.id;
+      await this.userRepository.save(user);
+    }
+    return;
+  }
 
   async activateUser(confirmEmailDto: ConfirmEmailDto) {
     const user: UserEntity = await this.checkIfEmailExcist(

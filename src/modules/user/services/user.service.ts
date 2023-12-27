@@ -27,6 +27,10 @@ export class UserService extends BaseService<UserEntity> {
     return await this.userRepository.findOne({ where: { email: email } });
   }
 
+  async createAdmin(email: string) {
+    return await this.userRepository.findOne({ where: { email: email } });
+  }
+
   async checkIfEmailExcist(email: string): Promise<UserEntity | undefined> {
     const user = await this.findOneUser(email);
     if (!user) {
@@ -90,8 +94,24 @@ export class UserService extends BaseService<UserEntity> {
   async findById(id: number): Promise<UserEntity | undefined> {
     return this.userRepository.findOne({
       where: { id: id },
-      relations: ['articles'],
+      relations: ['articles', 'comments'],
     });
+  }
+  async sendCodeAgain(forgotPasswordDto: ForgotPasswordDto) {
+    const user = await this.findOneUser(forgotPasswordDto.email);
+    if (user) {
+      const newConfirmCode = await this.createConfirmCode();
+      const emailDto = new ConfirmEmailDto();
+      emailDto.code = newConfirmCode;
+      emailDto.email = user.email;
+      await this.emailService.sendEmail(emailDto);
+      const code = await this.codeRepository.create();
+      code.confirmCode = newConfirmCode;
+      await this.codeRepository.save(code);
+      user.confirmCodeId = code.id;
+      await this.userRepository.save(user);
+    }
+    return;
   }
 
   async activateUser(confirmEmailDto: ConfirmEmailDto) {

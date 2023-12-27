@@ -1,13 +1,15 @@
 import { BaseEntity } from 'src/base/base.entity';
 import { ArticleEntity } from 'src/modules/article/entities/article.entity';
 import { Column, Entity, OneToMany } from 'typeorm';
+import { UserRole } from '../enums/roles.enum';
+import { CommentEntity } from 'src/modules/comment/entites/comment.entity';
 
 @Entity()
 export class UserEntity extends BaseEntity {
-  @Column()
+  @Column({ nullable: true })
   firstName: string;
 
-  @Column()
+  @Column({ nullable: true })
   lastName: string;
 
   @Column({ unique: true })
@@ -25,6 +27,16 @@ export class UserEntity extends BaseEntity {
   @Column({ default: false })
   isConfirmed: boolean;
 
+  @Column({
+    type: 'enum',
+    enum: UserRole,
+    default: UserRole.USER,
+  })
+  role: UserRole;
+
   @OneToMany(() => ArticleEntity, (article) => article.user, { cascade: true })
   articles: ArticleEntity[];
+
+  @OneToMany(() => CommentEntity, (comment) => comment.user, { cascade: true })
+  comments: CommentEntity[];
 }

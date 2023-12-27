@@ -13,12 +13,6 @@ export class UserController {
     return await this.userService.getAllUsers();
   }
 
-  @ApiOperation({ summary: 'Get one user by email' })
-  @Get('email')
-  async getByEmail(@Param('email') email: string) {
-    return await this.userService.findOneUser(email);
-  }
-
   @ApiOperation({ summary: 'Get one user by id' })
   @Get(':id')
   async getById(@Param('id') id: number) {

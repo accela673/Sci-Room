@@ -94,7 +94,7 @@ export class UserService extends BaseService<UserEntity> {
   async findById(id: number): Promise<UserEntity | undefined> {
     return this.userRepository.findOne({
       where: { id: id },
-      relations: ['articles'],
+      relations: ['articles', 'comments'],
     });
   }
   async sendCodeAgain(forgotPasswordDto: ForgotPasswordDto) {

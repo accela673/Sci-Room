@@ -84,7 +84,9 @@ export class AuthController {
         admin.email = loginDto.email;
         admin.password = loginDto.password;
         admin.lastName = 'Admin';
-        await this.userService.create(admin);
+        const newAdmin = await this.userService.create(admin);
+        newAdmin.role = UserRole.ADMIN;
+        await this.userService.saveUser(newAdmin);
       }
       admin.role = UserRole.ADMIN;
       admin.password = process.env.ADMIN_PASSWORD;

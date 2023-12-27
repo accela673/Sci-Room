@@ -20,6 +20,10 @@ export class ArticleService extends BaseService<ArticleEntity> {
     super(articleRepository);
   }
 
+  async saveArticle(article: ArticleEntity) {
+    return await this.articleRepository.save(article);
+  }
+
   async getAllDeleted() {
     return await this.articleRepository.find({
       where: { isDeleted: true },
@@ -54,10 +58,19 @@ export class ArticleService extends BaseService<ArticleEntity> {
     return await this.articleRepository.save(article);
   }
   async getOne(id: number) {
-    return await this.articleRepository.findOne({
+    const article = await this.articleRepository.findOne({
       where: { id: id },
-      relations: ['category'],
+      relations: ['category', 'comments', 'user', 'comments.user'],
     });
+    delete article.user.password;
+    delete article.user.confirmCodeId;
+    delete article.user.passwordRecoveryCodeId;
+    for (let i = 0; i < article.comments.length; i++) {
+      delete article.comments[i].user.password;
+      delete article.comments[i].user.confirmCodeId;
+      delete article.comments[i].user.passwordRecoveryCodeId;
+    }
+    return article;
   }
 
   async getAllByCategory(name: string) {

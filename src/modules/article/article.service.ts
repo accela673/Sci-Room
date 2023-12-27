@@ -20,6 +20,10 @@ export class ArticleService extends BaseService<ArticleEntity> {
     super(articleRepository);
   }
 
+  async saveArticle(article: ArticleEntity) {
+    return await this.articleRepository.save(article);
+  }
+
   async getAllDeleted() {
     return await this.articleRepository.find({
       where: { isDeleted: true },
@@ -54,10 +58,19 @@ export class ArticleService extends BaseService<ArticleEntity> {
     return await this.articleRepository.save(article);
   }
   async getOne(id: number) {
-    return await this.articleRepository.findOne({
+    const article = await this.articleRepository.findOne({
       where: { id: id },
-      relations: ['category'],
+      relations: ['category', 'comments', 'user', 'comments.user'],
     });
+    delete article.user.password;
+    delete article.user.confirmCodeId;
+    delete article.user.passwordRecoveryCodeId;
+    for (let i = 0; i < article.comments.length; i++) {
+      delete article.comments[i].user.password;
+      delete article.comments[i].user.confirmCodeId;
+      delete article.comments[i].user.passwordRecoveryCodeId;
+    }
+    return article;
   }
 
   async getAllByCategory(name: string) {
@@ -93,6 +106,7 @@ export class ArticleService extends BaseService<ArticleEntity> {
     const article = await this.getOne(id);
     if (article && !article.isDeleted) {
       article.isDeleted = true;
+      article.isPublished = false;
       await this.articleRepository.save(article);
       return { message: 'Successfully deleted' };
     }
@@ -105,6 +119,59 @@ export class ArticleService extends BaseService<ArticleEntity> {
       article.isDeleted = false;
       await this.articleRepository.save(article);
       return { message: 'Successfully restored' };
+    }
+    return;
+  }
+
+  async approveArticle(id: number) {
+    const article = await this.getOne(id);
+    if (
+      article &&
+      !article.isDeleted &&
+      article.isApproved == null &&
+      article.isPending == true
+    ) {
+      article.isApproved = true;
+      article.isPending = false;
+      await this.articleRepository.save(article);
+      return { message: 'Successfully approved' };
+    }
+    return;
+  }
+
+  async declineArticle(id: number) {
+    const article = await this.getOne(id);
+    if (
+      article &&
+      !article.isDeleted &&
+      article.isApproved == null &&
+      article.isPending == true
+    ) {
+      article.isApproved = false;
+      article.isPending = false;
+      await this.articleRepository.save(article);
+      return { message: 'Successfully declined' };
+    }
+    return;
+  }
+
+  async changeVisibility(id: number) {
+    const article = await this.getOne(id);
+    if (
+      article &&
+      !article.isDeleted &&
+      article.isApproved == true &&
+      article.isPending == false
+    ) {
+      if (article.isPublished == true) {
+        article.isPublished = false;
+        await this.articleRepository.save(article);
+        return { message: 'Successfully depublished' };
+      } else {
+        article.isPublished = true;
+        await this.articleRepository.save(article);
+        return { message: 'Successfully published' };
+      }
     }
     return;
   }

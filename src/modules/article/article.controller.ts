@@ -22,6 +22,7 @@ import {
 } from '@nestjs/swagger';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { JwtAuthGuard } from '../auth/jwt/jwt-auth.guard';
+import { UserRole } from '../user/enums/roles.enum';
 
 @Controller('article')
 export class ArticleController {
@@ -31,7 +32,7 @@ export class ArticleController {
   @Get('allMy')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get my articles' })
+  @ApiOperation({ summary: 'Get all my articles' })
   async getAllMyArticles(@Req() req: any) {
     return await this.articleService.getAllMy(req.user.id);
   }
@@ -81,7 +82,6 @@ export class ArticleController {
     article.file = file;
     Object.assign(article, createArticleDto);
     return await this.articleService.createArticle(req.user.id, article);
-    // console.log(file);
   }
 
   @ApiTags('Articles for admin')
@@ -114,15 +114,49 @@ export class ArticleController {
 
   @ApiTags('Articles for admin')
   @Patch('delete/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete article by id' })
-  async deleteArticle(@Param('id') id: number) {
+  async deleteArticle(@Param('id') id: number, @Req() req) {
+    if (req.user.role != UserRole.ADMIN) {
+      throw new BadRequestException('Only admin has permission to this action');
+    }
     return await this.articleService.deleteArticle(+id);
   }
 
   @ApiTags('Articles for admin')
   @Patch('restore/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Restore article by id' })
-  async restoreArticle(@Param('id') id: number) {
+  async restoreArticle(@Param('id') id: number, @Req() req) {
+    if (req.user.role != UserRole.ADMIN) {
+      throw new BadRequestException('Only admin has permission to this action');
+    }
     return await this.articleService.restoreArticle(+id);
+  }
+
+  @ApiTags('Articles for admin')
+  @Patch('approve/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Approve article by id' })
+  async approveArticle(@Param('id') id: number, @Req() req) {
+    if (req.user.role != UserRole.ADMIN) {
+      throw new BadRequestException('Only admin has permission to this action');
+    }
+    return await this.articleService.approveArticle(+id);
+  }
+
+  @ApiTags('Articles for admin')
+  @Patch('changeVisibility/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Make article public or private' })
+  async changeVisibility(@Param('id') id: number, @Req() req) {
+    if (req.user.role != UserRole.ADMIN) {
+      throw new BadRequestException('Only admin has permission to this action');
+    }
+    return await this.articleService.changeVisibility(+id);
   }
 }

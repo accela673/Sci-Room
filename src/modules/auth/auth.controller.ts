@@ -18,6 +18,7 @@ import { LoginDto } from '../user/dto/login-dto';
 import { ForgotPasswordDto } from '../user/dto/forgot-password.dto';
 import { JwtAuthGuard } from './jwt/jwt-auth.guard';
 import { ChangePasswordDto } from '../user/dto/change-password.dto';
+import { UserRole } from '../user/enums/roles.enum';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -53,9 +54,46 @@ export class AuthController {
     return this.authService.generateToken(user);
   }
 
+  @ApiOperation({ summary: 'Send code again' })
+  @Patch('sendCodeAgain')
+  async sendCodeAgain(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    const existingUser = await this.userService.findOneUser(
+      forgotPasswordDto.email,
+    );
+    if (!existingUser) {
+      throw new BadRequestException('Email does not exists');
+    }
+    if (!existingUser.isConfirmed) {
+      await this.userService.sendCodeAgain(forgotPasswordDto);
+      return { message: 'New code successfully sent' };
+    }
+    return;
+  }
+
   @ApiOperation({ summary: 'Login' })
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
+    if (
+      loginDto.email == process.env.ADMIN_EMAIL &&
+      loginDto.password == process.env.ADMIN_PASSWORD
+    ) {
+      const admin = await this.userService.findOneUser(loginDto.email);
+      if (!admin) {
+        const admin = new CreateUserDto();
+        admin.firstName = 'Journal';
+        admin.email = loginDto.email;
+        admin.password = loginDto.password;
+        admin.lastName = 'Admin';
+        const newAdmin = await this.userService.create(admin);
+        newAdmin.role = UserRole.ADMIN;
+        await this.userService.saveUser(newAdmin);
+      }
+      admin.role = UserRole.ADMIN;
+      admin.password = process.env.ADMIN_PASSWORD;
+      admin.email = process.env.ADMIN_EMAIL;
+      await this.userService.saveUser(admin);
+      return this.authService.generateToken(admin);
+    }
     const user = await this.userService.findOneUser(loginDto.email);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');

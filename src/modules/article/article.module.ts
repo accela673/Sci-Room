@@ -6,6 +6,8 @@ import { ArticleEntity } from './entities/article.entity';
 import { UserModule } from '../user/user.module';
 import { FileModule } from '../image/file.module';
 import { CategoryModule } from '../category/category.module';
+import { CommentModule } from '../comment/comment.module';
+import { CategoryService } from '../category/category.service';
 
 @Module({
   imports: [
@@ -15,6 +17,7 @@ import { CategoryModule } from '../category/category.module';
     CategoryModule,
   ],
   controllers: [ArticleController],
-  providers: [ArticleService],
+  providers: [ArticleService, CategoryService],
+  exports: [ArticleService],
 })
 export class ArticleModule {}

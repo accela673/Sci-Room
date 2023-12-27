@@ -1,7 +1,8 @@
 import { BaseEntity } from 'src/base/base.entity';
 import { CategoryEntity } from 'src/modules/category/entities/category.entity';
+import { CommentEntity } from 'src/modules/comment/entites/comment.entity';
 import { UserEntity } from 'src/modules/user/entities/user.entity';
-import { Column, Entity, ManyToOne } from 'typeorm';
+import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 
 @Entity()
 export class ArticleEntity extends BaseEntity {
@@ -40,6 +41,9 @@ export class ArticleEntity extends BaseEntity {
     onUpdate: 'CASCADE',
   })
   user: UserEntity;
+
+  @OneToMany(() => CommentEntity, (comment) => comment.article)
+  comments: CommentEntity[];
 
   @ManyToOne(() => CategoryEntity, (category) => category.article)
   category: CategoryEntity;

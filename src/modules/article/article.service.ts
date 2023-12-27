@@ -20,6 +20,10 @@ export class ArticleService extends BaseService<ArticleEntity> {
     super(articleRepository);
   }
 
+  async saveArticle(article: ArticleEntity) {
+    return await this.articleRepository.save(article);
+  }
+
   async getAllDeleted() {
     return await this.articleRepository.find({
       where: { isDeleted: true },
@@ -56,7 +60,7 @@ export class ArticleService extends BaseService<ArticleEntity> {
   async getOne(id: number) {
     return await this.articleRepository.findOne({
       where: { id: id },
-      relations: ['category'],
+      relations: ['category', 'comments', 'user'],
     });
   }
 

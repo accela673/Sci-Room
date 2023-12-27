@@ -37,6 +37,6 @@ export class UserEntity extends BaseEntity {
   @OneToMany(() => ArticleEntity, (article) => article.user, { cascade: true })
   articles: ArticleEntity[];
 
-  @OneToMany(() => CommentEntity, (comment) => comment.user)
+  @OneToMany(() => CommentEntity, (comment) => comment.user, { cascade: true })
   comments: CommentEntity[];
 }

@@ -42,7 +42,9 @@ export class ArticleEntity extends BaseEntity {
   })
   user: UserEntity;
 
-  @OneToMany(() => CommentEntity, (comment) => comment.article)
+  @OneToMany(() => CommentEntity, (comment) => comment.article, {
+    cascade: true,
+  })
   comments: CommentEntity[];
 
   @ManyToOne(() => CategoryEntity, (category) => category.article)

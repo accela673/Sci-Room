@@ -8,7 +8,10 @@ export class CommentEntity extends BaseEntity {
   @Column()
   text: string;
 
-  @ManyToOne(() => ArticleEntity, (article) => article.comments)
+  @ManyToOne(() => ArticleEntity, (article) => article.comments, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
   article: ArticleEntity;
 
   @ManyToOne(() => UserEntity, (user) => user.comments)

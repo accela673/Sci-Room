@@ -97,6 +97,10 @@ export class ArticleController {
         text: { type: 'string' },
         category: { type: 'string' },
         coauthors: { type: 'string', example: 'Ryan Gosling, Tyler Durden' },
+        coauthorsEmails: {
+          type: 'string',
+          example: '@ryan.gosling@alatoo.edu.kg, @tylerdurden@email.com',
+        },
       },
       required: ['title', 'text'],
     },

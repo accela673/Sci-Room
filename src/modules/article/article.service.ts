@@ -52,6 +52,7 @@ export class ArticleService extends BaseService<ArticleEntity> {
     );
     article.category = category;
     article.coauthors = createArticleDto.coauthors;
+    article.coauthorsEmails = createArticleDto.coauthorsEmails;
     article.text = createArticleDto.text;
     article.title = createArticleDto.title;
     const user = await this.userService.findById(userId);

@@ -1,8 +1,7 @@
-import { Controller, Get, Post, Body, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { ListParamsDto } from 'src/base/dto/list-params.dto';
 
 @ApiTags('Categories')
 @Controller('category')
@@ -17,7 +16,7 @@ export class CategoryController {
 
   @Get('/list')
   @ApiOperation({ summary: 'Получить список всех категорий' })
-  async getList(@Query() listParamsDto: ListParamsDto) {
-    return await this.categoryService.list(listParamsDto);
+  async getList() {
+    return await this.categoryService.listAllCategories();
   }
 }

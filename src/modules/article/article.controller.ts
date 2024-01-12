@@ -23,6 +23,7 @@ import {
 import { CreateArticleDto } from './dto/create-article.dto';
 import { JwtAuthGuard } from '../auth/jwt/jwt-auth.guard';
 import { UserRole } from '../user/enums/roles.enum';
+import { SendPaymentDto } from '../email/dto/send_payment.dto';
 
 @Controller('article')
 export class ArticleController {
@@ -44,6 +45,37 @@ export class ArticleController {
   @ApiOperation({ summary: 'Get my deleted articles' })
   async getAllMyDeletedArticles(@Req() req: any) {
     return await this.articleService.getAllMyDeleted(req.user.id);
+  }
+
+  @ApiTags('Articles for user')
+  @Post('sendArticlePayment')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Send article payment file' })
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+        articleId: { type: 'number' },
+      },
+    },
+  })
+  async sendPayment(
+    @Req() req,
+    @Body() sendPaymentDto: SendPaymentDto,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) {
+      throw new BadRequestException('File not found');
+    }
+    sendPaymentDto.file = file;
+    return await this.articleService.sendPayment(sendPaymentDto, req.user.id);
   }
 
   @ApiTags('Articles for user')

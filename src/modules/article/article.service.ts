@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BaseService } from 'src/base/base.service';
 import { ArticleEntity } from './entities/article.entity';
@@ -7,6 +7,8 @@ import { CreateArticleDto } from './dto/create-article.dto';
 import { UserService } from '../user/services/user.service';
 import { FileService } from '../image/file.service';
 import { CategoryService } from '../category/category.service';
+import { SendPaymentDto } from '../email/dto/send_payment.dto';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class ArticleService extends BaseService<ArticleEntity> {
@@ -16,6 +18,7 @@ export class ArticleService extends BaseService<ArticleEntity> {
     private userService: UserService,
     private categoryService: CategoryService,
     private fileService: FileService,
+    private emailService: EmailService,
   ) {
     super(articleRepository);
   }
@@ -79,6 +82,32 @@ export class ArticleService extends BaseService<ArticleEntity> {
       where: { category: { name: name } },
       relations: ['category'],
     });
+  }
+
+  async sendPayment(sendPaymentDto: SendPaymentDto, userId: number) {
+    const article = await this.getOne(sendPaymentDto.articleId);
+    if (article.user.id !== userId) {
+      throw new BadRequestException('You can pay only for your article');
+    }
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: process.env.ADMIN_EMAIL,
+      subject: 'Payment Receipt for Article Upload',
+      text: `Payment receipt for the article "${article.title}" uploaded by ${article.user.firstName} ${article.user.lastName}`,
+      attachments: [
+        {
+          filename: sendPaymentDto.file.originalname,
+          content: sendPaymentDto.file.buffer,
+        },
+      ],
+    };
+
+    const sentEmail = await this.emailService.sendMail(mailOptions);
+    if (!sentEmail) {
+      throw new BadRequestException('Email sending error');
+    }
+    return { message: 'File sent to admin!' };
   }
 
   async getAllMy(id: number) {

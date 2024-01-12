@@ -21,6 +21,10 @@ export class CategoryService extends BaseService<CategoryEntity> {
     return category;
   }
 
+  async listAllCategories() {
+    return await this.categoryRepo.find();
+  }
+
   async createOne(cateoryDto: CreateCategoryDto) {
     const isExist = await this.categoryRepo.findOne({
       where: { name: cateoryDto.name },

@@ -1,7 +1,6 @@
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateArticleDto {
-  @IsNotEmpty()
   @IsOptional()
   file: Express.Multer.File;
 

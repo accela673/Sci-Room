@@ -7,6 +7,10 @@ export class CreateArticleDto {
   @IsNotEmpty()
   @IsOptional()
   coauthors: null | string;
+
+  @IsNotEmpty()
+  @IsOptional()
+  coauthorsEmails: null | string;
   // @IsOptional()
   // pdfFile: null | Express.Multer.File;
 

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BaseService } from 'src/base/base.service';
 import { ArticleEntity } from './entities/article.entity';
@@ -7,6 +7,8 @@ import { CreateArticleDto } from './dto/create-article.dto';
 import { UserService } from '../user/services/user.service';
 import { FileService } from '../image/file.service';
 import { CategoryService } from '../category/category.service';
+import { SendPaymentDto } from '../email/dto/send_payment.dto';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class ArticleService extends BaseService<ArticleEntity> {
@@ -16,8 +18,13 @@ export class ArticleService extends BaseService<ArticleEntity> {
     private userService: UserService,
     private categoryService: CategoryService,
     private fileService: FileService,
+    private emailService: EmailService,
   ) {
     super(articleRepository);
+  }
+
+  async saveArticle(article: ArticleEntity) {
+    return await this.articleRepository.save(article);
   }
 
   async getAllDeleted() {
@@ -45,6 +52,7 @@ export class ArticleService extends BaseService<ArticleEntity> {
     );
     article.category = category;
     article.coauthors = createArticleDto.coauthors;
+    article.coauthorsEmails = createArticleDto.coauthorsEmails;
     article.text = createArticleDto.text;
     article.title = createArticleDto.title;
     const user = await this.userService.findById(userId);
@@ -54,10 +62,19 @@ export class ArticleService extends BaseService<ArticleEntity> {
     return await this.articleRepository.save(article);
   }
   async getOne(id: number) {
-    return await this.articleRepository.findOne({
+    const article = await this.articleRepository.findOne({
       where: { id: id },
-      relations: ['category'],
+      relations: ['category', 'comments', 'user', 'comments.user'],
     });
+    delete article.user.password;
+    delete article.user.confirmCodeId;
+    delete article.user.passwordRecoveryCodeId;
+    for (let i = 0; i < article.comments.length; i++) {
+      delete article.comments[i].user.password;
+      delete article.comments[i].user.confirmCodeId;
+      delete article.comments[i].user.passwordRecoveryCodeId;
+    }
+    return article;
   }
 
   async getAllByCategory(name: string) {
@@ -66,6 +83,32 @@ export class ArticleService extends BaseService<ArticleEntity> {
       where: { category: { name: name } },
       relations: ['category'],
     });
+  }
+
+  async sendPayment(sendPaymentDto: SendPaymentDto, userId: number) {
+    const article = await this.getOne(sendPaymentDto.articleId);
+    if (article.user.id !== userId) {
+      throw new BadRequestException('You can pay only for your article');
+    }
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: process.env.ADMIN_EMAIL,
+      subject: 'Payment Receipt for Article Upload',
+      text: `Payment receipt for the article "${article.title}" uploaded by ${article.user.firstName} ${article.user.lastName}`,
+      attachments: [
+        {
+          filename: sendPaymentDto.file.originalname,
+          content: sendPaymentDto.file.buffer,
+        },
+      ],
+    };
+
+    const sentEmail = await this.emailService.sendMail(mailOptions);
+    if (!sentEmail) {
+      throw new BadRequestException('Email sending error');
+    }
+    return { message: 'File sent to admin!' };
   }
 
   async getAllMy(id: number) {
@@ -93,6 +136,7 @@ export class ArticleService extends BaseService<ArticleEntity> {
     const article = await this.getOne(id);
     if (article && !article.isDeleted) {
       article.isDeleted = true;
+      article.isPublished = false;
       await this.articleRepository.save(article);
       return { message: 'Successfully deleted' };
     }
@@ -105,6 +149,59 @@ export class ArticleService extends BaseService<ArticleEntity> {
       article.isDeleted = false;
       await this.articleRepository.save(article);
       return { message: 'Successfully restored' };
+    }
+    return;
+  }
+
+  async approveArticle(id: number) {
+    const article = await this.getOne(id);
+    if (
+      article &&
+      !article.isDeleted &&
+      article.isApproved == null &&
+      article.isPending == true
+    ) {
+      article.isApproved = true;
+      article.isPending = false;
+      await this.articleRepository.save(article);
+      return { message: 'Successfully approved' };
+    }
+    return;
+  }
+
+  async declineArticle(id: number) {
+    const article = await this.getOne(id);
+    if (
+      article &&
+      !article.isDeleted &&
+      article.isApproved == null &&
+      article.isPending == true
+    ) {
+      article.isApproved = false;
+      article.isPending = false;
+      await this.articleRepository.save(article);
+      return { message: 'Successfully declined' };
+    }
+    return;
+  }
+
+  async changeVisibility(id: number) {
+    const article = await this.getOne(id);
+    if (
+      article &&
+      !article.isDeleted &&
+      article.isApproved == true &&
+      article.isPending == false
+    ) {
+      if (article.isPublished == true) {
+        article.isPublished = false;
+        await this.articleRepository.save(article);
+        return { message: 'Successfully depublished' };
+      } else {
+        article.isPublished = true;
+        await this.articleRepository.save(article);
+        return { message: 'Successfully published' };
+      }
     }
     return;
   }

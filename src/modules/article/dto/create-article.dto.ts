@@ -1,13 +1,16 @@
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateArticleDto {
-  @IsNotEmpty()
   @IsOptional()
   file: Express.Multer.File;
 
   @IsNotEmpty()
   @IsOptional()
   coauthors: null | string;
+
+  @IsNotEmpty()
+  @IsOptional()
+  coauthorsEmails: null | string;
   // @IsOptional()
   // pdfFile: null | Express.Multer.File;
 

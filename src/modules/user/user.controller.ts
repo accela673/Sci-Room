@@ -1,6 +1,7 @@
-import { Controller, Delete, Get, Param } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Controller, Delete, Get, Param, Req, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserService } from './services/user.service';
+import { JwtAuthGuard } from '../auth/jwt/jwt-auth.guard';
 
 @ApiTags('Users for admin')
 @Controller('user')
@@ -13,10 +14,12 @@ export class UserController {
     return await this.userService.getAllUsers();
   }
 
-  @ApiOperation({ summary: 'Get one user by email' })
-  @Get('email')
-  async getByEmail(@Param('email') email: string) {
-    return await this.userService.findOneUser(email);
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get user profile' })
+  @Get('get/profile')
+  async getProfile(@Req() req) {
+    return await this.userService.get(+req.user.id);
   }
 
   @ApiOperation({ summary: 'Get one user by id' })

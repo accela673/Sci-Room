@@ -51,21 +51,21 @@ export class FileController {
     return this.fileService.createPdf(file);
   }
 
-  @Post('txt')
-  @ApiOperation({ summary: 'For uploading txt' })
+  @Post('docx')
+  @ApiOperation({ summary: 'For uploading docx (word file)' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
       type: 'object',
       properties: {
-        docxFile: {
+        docx: {
           type: 'string',
           format: 'binary',
         },
       },
     },
   })
-  @UseInterceptors(FileInterceptor('docxFile'))
+  @UseInterceptors(FileInterceptor('docx'))
   createTxt(@UploadedFile() file: Express.Multer.File) {
     return this.fileService.createDocx(file);
   }

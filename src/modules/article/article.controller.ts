@@ -10,8 +10,13 @@ import {
   Param,
   Patch,
   BadRequestException,
+  UploadedFiles,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  FileFieldsInterceptor,
+  FileInterceptor,
+  FilesInterceptor,
+} from '@nestjs/platform-express';
 import { ArticleService } from './article.service';
 import {
   ApiBearerAuth,
@@ -24,6 +29,8 @@ import { CreateArticleDto } from './dto/create-article.dto';
 import { JwtAuthGuard } from '../auth/jwt/jwt-auth.guard';
 import { UserRole } from '../user/enums/roles.enum';
 import { SendPaymentDto } from '../email/dto/send_payment.dto';
+import * as pdfParse from 'pdf-parse';
+import { UploadFilesDto } from './dto/upload-files.dto';
 
 @Controller('article')
 export class ArticleController {
@@ -84,40 +91,41 @@ export class ArticleController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create article' })
   @ApiConsumes('multipart/form-data')
-  @UseInterceptors(FileInterceptor('file'))
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        file: {
-          type: 'string',
-          format: 'binary',
-        },
-        title: { type: 'string' },
-        text: { type: 'string' },
-        category: { type: 'string' },
-        coauthors: { type: 'string', example: 'Ryan Gosling, Tyler Durden' },
-        coauthorsEmails: {
-          type: 'string',
-          example: '@ryan.gosling@alatoo.edu.kg, @tylerdurden@email.com',
-        },
-      },
-      required: ['title', 'text'],
-    },
-  })
+  @UseInterceptors(
+    FileFieldsInterceptor([{ name: 'checkFile' }, { name: 'articleFile' }]),
+  )
   async createArticle(
     @Req() req: any,
     @Body()
     createArticleDto: CreateArticleDto,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFiles()
+    files: {
+      checkFile: Express.Multer.File;
+      articleFile: Express.Multer.File;
+    },
   ) {
     const article = new CreateArticleDto();
-    if (!file) {
-      throw new BadRequestException('File not found');
+    const checkFile = files.checkFile[0];
+    const articleFile = files.articleFile[0];
+
+    if (!checkFile || !articleFile) {
+      throw new BadRequestException(
+        'Both checkFile and articleFile are required',
+      );
     }
-    article.file = file;
-    Object.assign(article, createArticleDto);
-    return await this.articleService.createArticle(req.user.id, article);
+    try {
+      const data = await pdfParse(articleFile.buffer);
+      article.checkFile = checkFile;
+      article.articleFile = articleFile;
+      Object.assign(article, createArticleDto);
+      return await this.articleService.createArticle(
+        req.user.id,
+        article,
+        data.numpages,
+      );
+    } catch (error) {
+      throw new Error(`Error extracting text: ${error}`);
+    }
   }
 
   @ApiTags('Articles for admin')
@@ -194,5 +202,28 @@ export class ArticleController {
       throw new BadRequestException('Only admin has permission to this action');
     }
     return await this.articleService.changeVisibility(+id);
+  }
+
+  @ApiTags('Articles for user')
+  @Post('test/twofiles/upload')
+  @UseInterceptors(
+    FileFieldsInterceptor([{ name: 'checkFile' }, { name: 'articleFile' }]),
+  ) // 2 - максимальное количество файлов
+  async uploadFiles(
+    @UploadedFiles()
+    files: {
+      checkFile: Express.Multer.File;
+      articleFile: Express.Multer.File;
+    },
+  ) {
+    const checkFile = files.checkFile[0];
+    const articleFile = files.articleFile[0];
+
+    if (!checkFile || !articleFile) {
+      throw new BadRequestException(
+        'Both checkFile and articleFile are required',
+      );
+    }
+    console.log(checkFile);
   }
 }

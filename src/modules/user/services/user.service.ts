@@ -74,7 +74,7 @@ export class UserService extends BaseService<UserEntity> {
       .sort(() => Math.random() - 0.5)
       .join('');
 
-    return randomString;
+    return randomString.toUpperCase();
   }
 
   async saveUser(user: UserEntity) {
@@ -97,13 +97,23 @@ export class UserService extends BaseService<UserEntity> {
       ...user,
       password: hashedPassword,
       confirmCodeId: code.id,
-      role: UserRole.ADMIN,
     });
     const emailDto = new ConfirmEmailDto();
     emailDto.code = code.confirmCode;
     emailDto.email = user.email;
-    await this.emailService.sendEmailToAdmin(emailDto);
-    // console.log(code.confirmCode);
+    if (
+      user.email == process.env.ADMIN_EMAIL &&
+      user.password == process.env.ADMIN_PASSWORD
+    ) {
+      const admin = await this.findOneUser(user.email);
+      if (!admin) {
+        newUser.role = UserRole.ADMIN;
+        await this.emailService.sendEmailToAdmin(emailDto);
+        return this.userRepository.save(newUser);
+      }
+    }
+
+    await this.emailService.sendEmail(emailDto);
     return this.userRepository.save(newUser);
   }
 

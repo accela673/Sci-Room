@@ -31,15 +31,6 @@ export class AuthController {
   @ApiOperation({ summary: 'Registration' })
   @Post('register')
   async register(@Body() createUserDto: CreateUserDto) {
-    if (
-      createUserDto.email == process.env.ADMIN_EMAIL &&
-      createUserDto.password == process.env.ADMIN_PASSWORD
-    ) {
-      const admin = await this.userService.findOneUser(createUserDto.email);
-      if (!admin) {
-        return await this.userService.create(createUserDto);
-      }
-    }
     const existingUser = await this.userService.findOneUser(
       createUserDto.email,
     );

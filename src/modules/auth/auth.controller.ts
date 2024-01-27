@@ -31,10 +31,19 @@ export class AuthController {
   @ApiOperation({ summary: 'Registration' })
   @Post('register')
   async register(@Body() createUserDto: CreateUserDto) {
+    if (
+      createUserDto.email == process.env.ADMIN_EMAIL &&
+      createUserDto.password == process.env.ADMIN_PASSWORD
+    ) {
+      const admin = await this.userService.findOneUser(createUserDto.email);
+      if (!admin) {
+        return await this.userService.create(createUserDto);
+      }
+    }
     const existingUser = await this.userService.findOneUser(
       createUserDto.email,
     );
-    if (existingUser) {
+    if (existingUser && existingUser.isConfirmed) {
       throw new BadRequestException('Email already exists');
     }
 
@@ -73,27 +82,6 @@ export class AuthController {
   @ApiOperation({ summary: 'Login' })
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
-    if (
-      loginDto.email == process.env.ADMIN_EMAIL &&
-      loginDto.password == process.env.ADMIN_PASSWORD
-    ) {
-      const admin = await this.userService.findOneUser(loginDto.email);
-      if (!admin) {
-        const admin = new CreateUserDto();
-        admin.firstName = 'Journal';
-        admin.email = loginDto.email;
-        admin.password = loginDto.password;
-        admin.lastName = 'Admin';
-        const newAdmin = await this.userService.create(admin);
-        newAdmin.role = UserRole.ADMIN;
-        await this.userService.saveUser(newAdmin);
-      }
-      admin.role = UserRole.ADMIN;
-      admin.password = process.env.ADMIN_PASSWORD;
-      admin.email = process.env.ADMIN_EMAIL;
-      await this.userService.saveUser(admin);
-      return this.authService.generateToken(admin);
-    }
     const user = await this.userService.findOneUser(loginDto.email);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');

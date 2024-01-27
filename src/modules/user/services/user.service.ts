@@ -10,6 +10,8 @@ import { CodeEntity } from '../entities/code.entity';
 import { EmailService } from 'src/modules/email/email.service';
 import { ForgotPasswordDto } from '../dto/forgot-password.dto';
 import { ChangePasswordDto } from '../dto/change-password.dto';
+import { UserRole } from '../enums/roles.enum';
+import { LoginDto } from '../dto/login-dto';
 
 @Injectable()
 export class UserService extends BaseService<UserEntity> {
@@ -27,8 +29,15 @@ export class UserService extends BaseService<UserEntity> {
     return await this.userRepository.findOne({ where: { email: email } });
   }
 
-  async createAdmin(email: string) {
-    return await this.userRepository.findOne({ where: { email: email } });
+  async createAdmin(loginDto: LoginDto) {
+    const admin = new CreateUserDto();
+    admin.firstName = 'Journal';
+    admin.email = loginDto.email;
+    admin.password = loginDto.password;
+    admin.lastName = 'Admin';
+    const newAdmin = await this.userRepository.create(admin);
+    newAdmin.role = UserRole.ADMIN;
+    return await this.userRepository.save(newAdmin);
   }
 
   async checkIfEmailExcist(email: string): Promise<UserEntity | undefined> {
@@ -73,6 +82,12 @@ export class UserService extends BaseService<UserEntity> {
   }
 
   async create(user: CreateUserDto): Promise<UserEntity> {
+    const excistingUser = await this.userRepository.findOne({
+      where: { email: user.email },
+    });
+    if (excistingUser && !excistingUser.isConfirmed) {
+      await this.userRepository.remove(excistingUser);
+    }
     const hashedPassword = await bcrypt.hash(user.password, 8);
     const newConfirmCode = await this.createConfirmCode();
     const code = await this.codeRepository.create();
@@ -82,11 +97,12 @@ export class UserService extends BaseService<UserEntity> {
       ...user,
       password: hashedPassword,
       confirmCodeId: code.id,
+      role: UserRole.ADMIN,
     });
     const emailDto = new ConfirmEmailDto();
     emailDto.code = code.confirmCode;
     emailDto.email = user.email;
-    await this.emailService.sendEmail(emailDto);
+    await this.emailService.sendEmailToAdmin(emailDto);
     // console.log(code.confirmCode);
     return this.userRepository.save(newUser);
   }

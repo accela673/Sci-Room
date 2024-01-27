@@ -157,7 +157,7 @@ export class ArticleController {
   }
 
   @ApiTags('Articles for admin')
-  @Patch('delete/:id')
+  @Post('delete/:id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete article by id' })
@@ -169,7 +169,7 @@ export class ArticleController {
   }
 
   @ApiTags('Articles for admin')
-  @Patch('restore/:id')
+  @Post('restore/:id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Restore article by id' })
@@ -181,7 +181,7 @@ export class ArticleController {
   }
 
   @ApiTags('Articles for admin')
-  @Patch('approve/:id')
+  @Post('approve/:id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Approve article by id' })
@@ -193,7 +193,7 @@ export class ArticleController {
   }
 
   @ApiTags('Articles for admin')
-  @Patch('changeVisibility/:id')
+  @Post('changeVisibility/:id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Make article public or private' })

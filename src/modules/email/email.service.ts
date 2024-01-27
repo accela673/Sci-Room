@@ -43,8 +43,19 @@ export class EmailService {
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: data.email,
-      subject: "Scientist's Room Password Confirmation",
-      text: `Your confirmation code is: ${data.code}. Do not share it with anyone! This code will expire in 15 minutes`,
+      subject: 'Ala-Too Academic Journal User Confirmation',
+      text: `Your confirmation code is: ${data.code} Do not give it to anyone! This code will expire in 15 minutes`,
+    };
+
+    return this.sendMail(mailOptions);
+  }
+
+  async sendEmailToAdmin(data: ConfirmEmailDto) {
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: data.email,
+      subject: 'Ala-Too Academic Journal Admin Confirmation',
+      text: `Your admin confirmation code is: ${data.code} Do not give it to anyone! This code will expire in 15 minutes`,
     };
 
     return this.sendMail(mailOptions);

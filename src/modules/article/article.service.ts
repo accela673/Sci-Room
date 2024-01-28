@@ -41,15 +41,23 @@ export class ArticleService extends BaseService<ArticleEntity> {
     });
   }
 
-  async createArticle(userId: number, createArticleDto: CreateArticleDto) {
+  async createArticle(
+    userId: number,
+    createArticleDto: CreateArticleDto,
+    pageCount: number,
+  ) {
     const article = new ArticleEntity();
-    if (createArticleDto.file) {
-      const file = await this.fileService.createDocx(createArticleDto.file);
-      article.fileUrl = file.url;
+    if (createArticleDto.articleFile) {
+      const articleFile = await this.fileService.createPdf(
+        createArticleDto.articleFile,
+      );
+      article.fileUrl = articleFile.url;
     }
+
     const category = await this.categoryService.findOne(
       createArticleDto.category,
     );
+    article.pageCount = pageCount;
     article.category = category;
     article.coauthors = createArticleDto.coauthors;
     article.coauthorsEmails = createArticleDto.coauthorsEmails;
@@ -59,7 +67,12 @@ export class ArticleService extends BaseService<ArticleEntity> {
     user.articles.push(article);
     await this.userService.saveUser(user);
     console.log(article);
-    return await this.articleRepository.save(article);
+    await this.articleRepository.save(article);
+    const sendPaymentDto = new SendPaymentDto();
+    sendPaymentDto.articleId = article.id;
+    sendPaymentDto.file = createArticleDto.checkFile;
+    await this.sendPayment(sendPaymentDto, userId);
+    return { message: 'Successfully created article' };
   }
   async getOne(id: number) {
     const article = await this.articleRepository.findOne({

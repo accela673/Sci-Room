@@ -37,6 +37,9 @@ export class ArticleEntity extends BaseEntity {
   coauthors: null | string;
 
   @Column({ nullable: true })
+  pageCount: number;
+
+  @Column({ nullable: true })
   coauthorsEmails: null | string;
 
   @ManyToOne(() => UserEntity, (user) => user.articles, {

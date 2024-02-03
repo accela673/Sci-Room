@@ -81,7 +81,7 @@ export class UserService extends BaseService<UserEntity> {
     return await this.userRepository.save(user);
   }
 
-  async create(user: CreateUserDto): Promise<UserEntity> {
+  async create(user: CreateUserDto) {
     const excistingUser = await this.userRepository.findOne({
       where: { email: user.email },
     });
@@ -111,8 +111,8 @@ export class UserService extends BaseService<UserEntity> {
         await this.emailService.sendEmailToAdmin(emailDto);
         return this.userRepository.save(newUser);
       }
+      return { message: 'Email is already taken' };
     }
-
     await this.emailService.sendEmail(emailDto);
     return this.userRepository.save(newUser);
   }

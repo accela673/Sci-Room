@@ -7,6 +7,7 @@ import {
   UseGuards,
   BadRequestException,
   UnauthorizedException,
+  Get,
 } from '@nestjs/common';
 import { AuthService } from './services/auth.service';
 import { UserService } from '../user/services/user.service';
@@ -27,6 +28,15 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly userService: UserService,
   ) {}
+
+  @ApiOperation({ summary: 'Get admin (for testing)' })
+  @Get('admin')
+  async getAdmin() {
+    return {
+      email: process.env.ADMIN_EMAIL,
+      password: process.env.ADMIN_PASSWORD,
+    };
+  }
 
   @ApiOperation({ summary: 'Registration' })
   @Post('register')

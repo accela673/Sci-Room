@@ -3,6 +3,7 @@ import { CategoryEntity } from 'src/modules/category/entities/category.entity';
 import { CommentEntity } from 'src/modules/comment/entites/comment.entity';
 import { UserEntity } from 'src/modules/user/entities/user.entity';
 import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
+import { StatusEnum } from '../enums/status.enum';
 
 @Entity()
 export class ArticleEntity extends BaseEntity {
@@ -24,11 +25,12 @@ export class ArticleEntity extends BaseEntity {
   @Column({ default: false })
   isPublished: boolean;
 
-  @Column({ nullable: true, default: null })
-  isApproved: boolean;
-
-  @Column({ default: true })
-  isPending: boolean;
+  @Column({
+    type: 'enum',
+    enum: StatusEnum,
+    default: StatusEnum.PENDING,
+  })
+  status: StatusEnum;
 
   @Column({ default: false })
   isDeleted: boolean;

@@ -193,6 +193,18 @@ export class ArticleController {
   }
 
   @ApiTags('Articles for admin')
+  @Post('decline/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Decline article by id' })
+  async declineArticle(@Param('id') id: number, @Req() req) {
+    if (req.user.role != UserRole.ADMIN) {
+      throw new BadRequestException('Only admin has permission to this action');
+    }
+    return await this.articleService.declineArticle(+id);
+  }
+
+  @ApiTags('Articles for admin')
   @Post('changeVisibility/:id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()

@@ -9,6 +9,7 @@ import { FileService } from '../image/file.service';
 import { CategoryService } from '../category/category.service';
 import { SendPaymentDto } from '../email/dto/send_payment.dto';
 import { EmailService } from '../email/email.service';
+import { StatusEnum } from './enums/status.enum';
 
 @Injectable()
 export class ArticleService extends BaseService<ArticleEntity> {
@@ -168,14 +169,8 @@ export class ArticleService extends BaseService<ArticleEntity> {
 
   async approveArticle(id: number) {
     const article = await this.getOne(id);
-    if (
-      article &&
-      !article.isDeleted &&
-      article.isApproved == null &&
-      article.isPending == true
-    ) {
-      article.isApproved = true;
-      article.isPending = false;
+    if (article && !article.isDeleted && article.status == StatusEnum.PENDING) {
+      article.status = StatusEnum.APPROVED;
       await this.articleRepository.save(article);
       return { message: 'Successfully approved' };
     }
@@ -184,14 +179,8 @@ export class ArticleService extends BaseService<ArticleEntity> {
 
   async declineArticle(id: number) {
     const article = await this.getOne(id);
-    if (
-      article &&
-      !article.isDeleted &&
-      article.isApproved == null &&
-      article.isPending == true
-    ) {
-      article.isApproved = false;
-      article.isPending = false;
+    if (article && !article.isDeleted && article.status == StatusEnum.PENDING) {
+      article.status = StatusEnum.DECLINED;
       await this.articleRepository.save(article);
       return { message: 'Successfully declined' };
     }
@@ -203,8 +192,7 @@ export class ArticleService extends BaseService<ArticleEntity> {
     if (
       article &&
       !article.isDeleted &&
-      article.isApproved == true &&
-      article.isPending == false
+      article.status == StatusEnum.APPROVED
     ) {
       if (article.isPublished == true) {
         article.isPublished = false;

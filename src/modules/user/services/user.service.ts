@@ -117,11 +117,15 @@ export class UserService extends BaseService<UserEntity> {
     return this.userRepository.save(newUser);
   }
 
-  async findById(id: number): Promise<UserEntity | undefined> {
-    return this.userRepository.findOne({
+  async findById(id: number) {
+    const user = this.userRepository.findOne({
       where: { id: id },
       relations: ['articles', 'comments'],
     });
+    if (!user) {
+      throw new BadRequestException('USer not found');
+    }
+    return user;
   }
   async sendCodeAgain(forgotPasswordDto: ForgotPasswordDto) {
     const user = await this.findOneUser(forgotPasswordDto.email);

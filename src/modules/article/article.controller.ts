@@ -4,23 +4,20 @@ import {
   Req,
   Controller,
   UseInterceptors,
-  UploadedFile,
   UseGuards,
   Get,
   Param,
-  Patch,
   BadRequestException,
   UploadedFiles,
+  UploadedFile,
 } from '@nestjs/common';
 import {
   FileFieldsInterceptor,
   FileInterceptor,
-  FilesInterceptor,
 } from '@nestjs/platform-express';
 import { ArticleService } from './article.service';
 import {
   ApiBearerAuth,
-  ApiBody,
   ApiConsumes,
   ApiOperation,
   ApiTags,
@@ -28,9 +25,9 @@ import {
 import { CreateArticleDto } from './dto/create-article.dto';
 import { JwtAuthGuard } from '../auth/jwt/jwt-auth.guard';
 import { UserRole } from '../user/enums/roles.enum';
-import { SendPaymentDto } from '../email/dto/send_payment.dto';
 import * as pdfParse from 'pdf-parse';
-import { UploadFilesDto } from './dto/upload-files.dto';
+import { PublishArticleDto } from './dto/publish-article.dto';
+import { AddToArchiveDto } from './dto/add-to-archive.dto';
 
 @Controller('article')
 export class ArticleController {
@@ -52,37 +49,6 @@ export class ArticleController {
   @ApiOperation({ summary: 'Get my deleted articles' })
   async getAllMyDeletedArticles(@Req() req: any) {
     return await this.articleService.getAllMyDeleted(req.user.id);
-  }
-
-  @ApiTags('Articles for user')
-  @Post('sendArticlePayment')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Send article payment file' })
-  @ApiConsumes('multipart/form-data')
-  @UseInterceptors(FileInterceptor('file'))
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        file: {
-          type: 'string',
-          format: 'binary',
-        },
-        articleId: { type: 'number' },
-      },
-    },
-  })
-  async sendPayment(
-    @Req() req,
-    @Body() sendPaymentDto: SendPaymentDto,
-    @UploadedFile() file: Express.Multer.File,
-  ) {
-    if (!file) {
-      throw new BadRequestException('File not found');
-    }
-    sendPaymentDto.file = file;
-    return await this.articleService.sendPayment(sendPaymentDto, req.user.id);
   }
 
   @ApiTags('Articles for user')
@@ -133,6 +99,13 @@ export class ArticleController {
   @ApiOperation({ summary: 'Get all articles' })
   async getArticles() {
     return await this.articleService.getAll();
+  }
+
+  @ApiTags('Articles for admin')
+  @Post('get/approved')
+  @ApiOperation({ summary: 'Опубликовать статью указав выпуск' })
+  async getAllApproved() {
+    return await this.articleService.getAllApproved();
   }
 
   @ApiTags('Articles for admin')
@@ -205,37 +178,34 @@ export class ArticleController {
   }
 
   @ApiTags('Articles for admin')
-  @Post('changeVisibility/:id')
+  @Post('publish/article')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Make article public or private' })
-  async changeVisibility(@Param('id') id: number, @Req() req) {
+  @ApiOperation({ summary: 'Опубликовать статью указав выпуск' })
+  async publishArticle(@Body() publishDto: PublishArticleDto, @Req() req) {
     if (req.user.role != UserRole.ADMIN) {
       throw new BadRequestException('Only admin has permission to this action');
     }
-    return await this.articleService.changeVisibility(+id);
+    return await this.articleService.publish(publishDto);
   }
 
-  @ApiTags('Articles for user')
-  @Post('test/twofiles/upload')
-  @UseInterceptors(
-    FileFieldsInterceptor([{ name: 'checkFile' }, { name: 'articleFile' }]),
-  ) // 2 - максимальное количество файлов
-  async uploadFiles(
-    @UploadedFiles()
-    files: {
-      checkFile: Express.Multer.File;
-      articleFile: Express.Multer.File;
-    },
+  @ApiTags('Articles for admin')
+  @Post('add/archive')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(FileInterceptor('articleFile'))
+  @ApiOperation({ summary: 'Опубликовать статью в архив' })
+  async addToArchive(
+    @Body() Dto: AddToArchiveDto,
+    @Req() req,
+    @UploadedFile() articleFile: Express.Multer.File,
   ) {
-    const checkFile = files.checkFile[0];
-    const articleFile = files.articleFile[0];
-
-    if (!checkFile || !articleFile) {
-      throw new BadRequestException(
-        'Both checkFile and articleFile are required',
-      );
+    if (req.user.role != UserRole.ADMIN) {
+      throw new BadRequestException('Only admin has permission to this action');
     }
-    console.log(checkFile);
+    Dto.articleFile = articleFile;
+    const data = await pdfParse(articleFile.buffer);
+    return await this.articleService.addToArchive(Dto, data.numpages);
   }
 }

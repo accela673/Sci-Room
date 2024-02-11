@@ -224,6 +224,10 @@ export class ArticleService extends BaseService<ArticleEntity> {
   }
 
   async addToArchive(dto: AddToArchiveDto, pagesCount) {
+    const user = await this.userService.findById(+dto.userId);
+    if (!user) {
+      throw new BadRequestException(`User not found`);
+    }
     const newArticle = await this.articleRepository.create();
     newArticle.year = +dto.yearString;
     newArticle.volume = +dto.yearString - 2010;
@@ -231,7 +235,6 @@ export class ArticleService extends BaseService<ArticleEntity> {
     const category = await this.categoryService.findOne(dto.categoryName);
     newArticle.category = category;
     Object.assign(newArticle, dto);
-    const user = await this.userService.findById(+dto.userId);
     newArticle.user = user;
     newArticle.authorName = `${user.firstName} ${user.lastName}`;
     newArticle.pageCount = pagesCount;

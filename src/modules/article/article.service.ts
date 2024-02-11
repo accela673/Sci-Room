@@ -10,6 +10,9 @@ import { CategoryService } from '../category/category.service';
 import { SendPaymentDto } from '../email/dto/send_payment.dto';
 import { EmailService } from '../email/email.service';
 import { StatusEnum } from './enums/status.enum';
+import { PublishArticleDto } from './dto/publish-article.dto';
+import { AddToArchiveDto } from './dto/add-to-archive.dto';
+import { log } from 'console';
 
 @Injectable()
 export class ArticleService extends BaseService<ArticleEntity> {
@@ -36,10 +39,18 @@ export class ArticleService extends BaseService<ArticleEntity> {
   }
 
   async getAll() {
-    return await this.articleRepository.find({
-      where: { isDeleted: false },
-      relations: ['category'],
+    const articles = await this.articleRepository.find({
+      relations: ['category', 'user'],
     });
+
+    for (let i = 0; i < articles.length; i++) {
+      if (articles[i].user) {
+        delete articles[i].user.password;
+        delete articles[i].user.confirmCodeId;
+        delete articles[i].user.passwordRecoveryCodeId;
+      }
+    }
+    return articles;
   }
 
   async createArticle(
@@ -58,13 +69,14 @@ export class ArticleService extends BaseService<ArticleEntity> {
     const category = await this.categoryService.findOne(
       createArticleDto.category,
     );
-    article.pageCount = pageCount;
+    Object.assign(article, createArticleDto);
     article.category = category;
-    article.coauthors = createArticleDto.coauthors;
-    article.coauthorsEmails = createArticleDto.coauthorsEmails;
-    article.text = createArticleDto.text;
-    article.title = createArticleDto.title;
+    article.pageCount = pageCount;
+    const currentDate = new Date();
+    article.year = currentDate.getFullYear();
+    article.volume = article.year - 2010;
     const user = await this.userService.findById(userId);
+    article.authorName = `${user.firstName} ${user.lastName}`;
     user.articles.push(article);
     await this.userService.saveUser(user);
     console.log(article);
@@ -80,9 +92,11 @@ export class ArticleService extends BaseService<ArticleEntity> {
       where: { id: id },
       relations: ['category', 'comments', 'user', 'comments.user'],
     });
-    delete article.user.password;
-    delete article.user.confirmCodeId;
-    delete article.user.passwordRecoveryCodeId;
+    if (article.user) {
+      delete article.user.password;
+      delete article.user.confirmCodeId;
+      delete article.user.passwordRecoveryCodeId;
+    }
     for (let i = 0; i < article.comments.length; i++) {
       delete article.comments[i].user.password;
       delete article.comments[i].user.confirmCodeId;
@@ -150,7 +164,6 @@ export class ArticleService extends BaseService<ArticleEntity> {
     const article = await this.getOne(id);
     if (article && !article.isDeleted) {
       article.isDeleted = true;
-      article.isPublished = false;
       await this.articleRepository.save(article);
       return { message: 'Successfully deleted' };
     }
@@ -186,24 +199,49 @@ export class ArticleService extends BaseService<ArticleEntity> {
     }
     return;
   }
+  s;
 
-  async changeVisibility(id: number) {
-    const article = await this.getOne(id);
+  async getAllApproved() {
+    return await this.articleRepository.find({
+      where: { status: StatusEnum.APPROVED },
+    });
+  }
+
+  async publish(publishDto: PublishArticleDto) {
+    const article = await this.getOne(publishDto.articleId);
     if (
       article &&
       !article.isDeleted &&
       article.status == StatusEnum.APPROVED
     ) {
-      if (article.isPublished == true) {
-        article.isPublished = false;
-        await this.articleRepository.save(article);
-        return { message: 'Successfully depublished' };
-      } else {
-        article.isPublished = true;
-        await this.articleRepository.save(article);
-        return { message: 'Successfully published' };
-      }
+      article.edition = publishDto.editionNumber;
+      await this.articleRepository.save(article);
+      return {
+        message: `Статья опубликована в томе: ${article.volume} в выпуске под номером ${article.edition}`,
+      };
     }
     return;
+  }
+
+  async addToArchive(dto: AddToArchiveDto, pagesCount) {
+    const user = await this.userService.findById(+dto.userId);
+    if (!user) {
+      throw new BadRequestException(`User not found`);
+    }
+    const newArticle = await this.articleRepository.create();
+    newArticle.year = +dto.yearString;
+    newArticle.volume = +dto.yearString - 2010;
+    newArticle.edition = +dto.editionString;
+    const category = await this.categoryService.findOne(dto.categoryName);
+    newArticle.category = category;
+    Object.assign(newArticle, dto);
+    newArticle.user = user;
+    newArticle.authorName = `${user.firstName} ${user.lastName}`;
+    newArticle.pageCount = pagesCount;
+    if (dto.articleFile) {
+      const articleFile = await this.fileService.createPdf(dto.articleFile);
+      newArticle.fileUrl = articleFile.url;
+    }
+    return await this.articleRepository.save(newArticle);
   }
 }

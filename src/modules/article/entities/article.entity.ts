@@ -3,17 +3,12 @@ import { CategoryEntity } from 'src/modules/category/entities/category.entity';
 import { CommentEntity } from 'src/modules/comment/entites/comment.entity';
 import { UserEntity } from 'src/modules/user/entities/user.entity';
 import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
+import { StatusEnum } from '../enums/status.enum';
 
 @Entity()
 export class ArticleEntity extends BaseEntity {
   @Column({ nullable: true })
   fileUrl: null | string;
-
-  // @Column({ nullable: true })
-  // txtFile: string;
-
-  // @Column({ nullable: true })
-  // pdfFile: string;
 
   @Column()
   title: string;
@@ -21,14 +16,12 @@ export class ArticleEntity extends BaseEntity {
   @Column()
   text: string;
 
-  @Column({ default: false })
-  isPublished: boolean;
-
-  @Column({ nullable: true, default: null })
-  isApproved: boolean;
-
-  @Column({ default: true })
-  isPending: boolean;
+  @Column({
+    type: 'enum',
+    enum: StatusEnum,
+    default: StatusEnum.PENDING,
+  })
+  status: StatusEnum;
 
   @Column({ default: false })
   isDeleted: boolean;
@@ -41,6 +34,18 @@ export class ArticleEntity extends BaseEntity {
 
   @Column({ nullable: true })
   coauthorsEmails: null | string;
+
+  @Column({ nullable: true })
+  year: number;
+
+  @Column({ nullable: true, default: null })
+  edition: number;
+
+  @Column({ nullable: true, default: null })
+  volume: number;
+
+  @Column({ nullable: true, default: null })
+  authorName: string;
 
   @ManyToOne(() => UserEntity, (user) => user.articles, {
     onDelete: 'CASCADE',

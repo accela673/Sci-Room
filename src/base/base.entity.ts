@@ -1,8 +1,4 @@
-import {
-  CreateDateColumn,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { CreateDateColumn, PrimaryGeneratedColumn } from 'typeorm';
 import { BaseDto } from './dto/base.dto.';
 
 export abstract class BaseEntity {
@@ -11,9 +7,6 @@ export abstract class BaseEntity {
 
   @CreateDateColumn()
   createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
 
   absorbFromDto(dto: BaseDto) {
     dto.getKeys().forEach((key: string) => {
